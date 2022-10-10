@@ -8,6 +8,12 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] GameObject cameraHolder;
     [SerializeField] private float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
+
+    [SerializeField] Item[] items;
+
+    int itemIndex;
+    int previousItemIndex = -1;
+
     float verticalLookRotation;
     bool isGrounded;
     Vector3 smoothMoveVelocity;
@@ -25,6 +31,10 @@ public class PlayerController : MonoBehaviour
     {
         if (!pv.IsMine)
         {
+            EquipItem(0);
+        }
+        else
+        {
             Destroy(GetComponentInChildren<Camera>().gameObject);
             Destroy(rb);
         }
@@ -37,7 +47,15 @@ public class PlayerController : MonoBehaviour
         Look();
         Move();
         Jump();
-       
+
+       for(int i =0; i< items.Length; i++)
+        {
+            if (Input.GetKeyDown((i + 1).ToString()))
+            {
+                EquipItem(i);
+                break;
+            }
+        }
     }
 
     private void Move()
@@ -53,6 +71,19 @@ public class PlayerController : MonoBehaviour
         {
             rb.AddForce(transform.up * jumpForce);
         }
+    }
+
+    void EquipItem(int _index)
+    {
+        if (previousItemIndex == _index) return;
+
+        itemIndex = _index;
+        items[itemIndex].itemGameObject.SetActive(true);
+
+        if (previousItemIndex != -1)
+            items[previousItemIndex].itemGameObject.SetActive(false);
+
+        previousItemIndex = itemIndex;
     }
 
     void Look()
