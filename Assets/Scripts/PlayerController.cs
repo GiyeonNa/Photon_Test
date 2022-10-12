@@ -1,10 +1,13 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.VFX;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPunCallbacks
 {
     [SerializeField] GameObject cameraHolder;
     [SerializeField] private float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
@@ -49,13 +52,33 @@ public class PlayerController : MonoBehaviour
         Jump();
 
        for(int i =0; i< items.Length; i++)
-        {
+       {
             if (Input.GetKeyDown((i + 1).ToString()))
             {
                 EquipItem(i);
                 break;
             }
-        }
+       }
+
+       if(Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+       {
+            if(itemIndex >= items.Length - 1)
+            {
+                EquipItem(0);
+            }
+            EquipItem(itemIndex + 1);
+       }
+       else if(Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+       {
+            if (itemIndex <= 0)
+            {
+                EquipItem(items.Length - 1);
+            }
+            else
+            {
+                EquipItem(itemIndex - 1);
+            }
+       }
     }
 
     private void Move()
@@ -84,6 +107,22 @@ public class PlayerController : MonoBehaviour
             items[previousItemIndex].itemGameObject.SetActive(false);
 
         previousItemIndex = itemIndex;
+
+        if (pv.IsMine)
+        {
+            Hashtable hash = new Hashtable();
+            hash.Add("itemIndex", itemIndex);
+            //C# hash , Photon hash
+            PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
+        }
+    }
+
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+    {
+        if(!pv.IsMine && targetPlayer == pv.Owner)
+        {
+            EquipItem((int)changedProps["itemIndex"]);
+        }
     }
 
     void Look()
