@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
-public class PlayerController : MonoBehaviourPunCallbacks
+public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
     [SerializeField] GameObject cameraHolder;
     [SerializeField] private float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
@@ -25,10 +25,16 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     PhotonView pv;
 
+    const float maxHealth = 100f;
+    float curHealth = maxHealth;
+
+    PlayerManager playerManager;
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         pv = GetComponent<PhotonView>();
+
+        playerManager = PhotonView.Find((int)pv.InstantiationData[0]).GetComponent<PlayerManager>();
     }
     private void Start()
     {
@@ -79,6 +85,11 @@ public class PlayerController : MonoBehaviourPunCallbacks
                 EquipItem(itemIndex - 1);
             }
        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            items[itemIndex].Use();
+        }
     }
 
     private void Move()
@@ -143,5 +154,27 @@ public class PlayerController : MonoBehaviourPunCallbacks
     {
         if (!pv.IsMine) return;
         rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+    }
+
+    public void TakeDamage(float damage)
+    {
+        pv.RPC("RPC_TakeDamage", RpcTarget.All, damage);
+    }
+
+    [PunRPC]
+    void RPC_TakeDamage(float damage)
+    {
+        if (!pv.IsMine) return;
+        curHealth -= damage;
+
+        if(curHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        PlayerManager.Die();
     }
 }
