@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e4a3d8fcb0a5f4488663feee9a40ff5, type: 3}
   m_Name: Pistol
   m_EditorClassIdentifier: 
-  itemName: Gun 2
+  itemName: Pistol
+  damage: 25

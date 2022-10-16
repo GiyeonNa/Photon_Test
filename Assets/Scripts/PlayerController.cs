@@ -90,6 +90,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         {
             items[itemIndex].Use();
         }
+
+        if (transform.position.y < -10f) Die();
     }
 
     private void Move()
@@ -175,6 +177,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     void Die()
     {
-        PlayerManager.Die();
+        playerManager.Die();
     }
 }
